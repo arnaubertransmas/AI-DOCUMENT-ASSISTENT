@@ -1,6 +1,5 @@
 from fastapi import APIRouter, UploadFile, File
 import os
-from uuid import uuid4
 from app.services.pdf_service import extract_text_from_pdf
 
 router = APIRouter()
@@ -12,17 +11,15 @@ os.makedirs(UPLOAD_DIR, exist_ok=True)
 async def upload_pdf(file: UploadFile = File(...)):
     if not file.filename.endswith(".pdf"):
         return {"error": "Only PDFs allowed"}
-
-    file_id = f"{uuid4()}.pdf"
-    file_path = os.path.join(UPLOAD_DIR, file_id)
-
+    
+    file_path = os.path.join(UPLOAD_DIR, file.filename)
+    
     with open(file_path, "wb") as f:
         f.write(await file.read())
-
+    
     extracted_text = extract_text_from_pdf(file_path)
-
+    
     return {
         "filename": file.filename,
-        "stored_as": file_id,
-        "text_preview": extracted_text[:500]  # només els primers caràcters
+        "text_preview": extracted_text
     }
